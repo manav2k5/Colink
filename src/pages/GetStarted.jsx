@@ -1,194 +1,233 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import "./index.css"; 
+import "./index.css";
 
-const FeatureCard = ({ icon, title, color }) => {
-  const [hovered, setHovered] = useState(false);
+const PersonIllustration1 = () => (
+  <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="60" cy="45" r="25" fill="#2D2D2D"/>
+    <path d="M60 75C81.5 75 95 85 95 100H25C25 85 38.5 75 60 75Z" fill="#2D2D2D"/>
+    <path d="M45 42C45 42 50 49 60 49C70 49 75 42 75 42" stroke="white" strokeWidth="3" strokeLinecap="round"/>
+    <circle cx="45" cy="35" r="5" fill="white"/>
+    <circle cx="75" cy="35" r="5" fill="white"/>
+  </svg>
+);
 
-  return (
-    <div
-      style={{
-        backgroundColor: "#111",
-        padding: "20px",
-        borderRadius: "20px",
-        border: `1px solid ${color}`,
-        textAlign: "center",
-        color: "white",
-        boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-        transform: hovered ? "scale(1.05)" : "scale(1)",
-        transition: "transform 0.3s ease",
-        cursor: "pointer",
-      }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      <div style={{ fontSize: "26px", marginBottom: "8px", color }}>
-        <i className={`fas fa-${icon}`}></i>
-      </div>
-      <div style={{ fontSize: "14px" }}>{title}</div>
-    </div>
-  );
-};
+const PersonIllustration2 = () => (
+  <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="60" cy="45" r="25" fill="#2D2D2D"/>
+    <path d="M60 75C81.5 75 95 85 95 100H25C25 85 38.5 75 60 75Z" fill="#2D2D2D"/>
+    <path d="M45 42C45 42 50 35 60 35C70 35 75 42 75 42" stroke="white" strokeWidth="3" strokeLinecap="round"/>
+    <circle cx="45" cy="35" r="5" fill="white"/>
+    <circle cx="75" cy="35" r="5" fill="white"/>
+  </svg>
+);
+
+const PersonIllustration3 = () => (
+  <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="60" cy="45" r="25" fill="#2D2D2D"/>
+    <path d="M60 75C81.5 75 95 85 95 100H25C25 85 38.5 75 60 75Z" fill="#2D2D2D"/>
+    <path d="M45 35H75" stroke="white" strokeWidth="3" strokeLinecap="round"/>
+    <circle cx="45" cy="35" r="5" fill="white"/>
+    <circle cx="75" cy="35" r="5" fill="white"/>
+  </svg>
+);
 
 export default function GetStarted() {
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [logoScale, setLogoScale] = useState(0.8);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    setTimeout(() => setIsAnimating(true), 100);
-    const interval = setInterval(() => {
-      setLogoScale((prev) => (prev === 1.0 ? 0.9 : 1.0));
-    }, 2000);
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <div
       style={{
         position: "relative",
         minHeight: "100vh",
-        backgroundColor: "black",
+        backgroundColor: "#4A154B", // Slack's purple
         color: "white",
         overflow: "hidden",
-        fontFamily: "'Segoe UI', sans-serif",
+        fontFamily: "'Lato', 'Segoe UI', sans-serif",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "20px",
       }}
     >
-      {/* Animated Circles */}
-      <div
-        style={{
-          position: "absolute",
-          width: "200px",
-          height: "200px",
-          borderRadius: "50%",
-          backgroundColor: "#0066CC",
-          opacity: 0.1,
-          top: "80px",
-          left: "40px",
-          animation: "float1 6s ease-in-out infinite",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          width: "300px",
-          height: "300px",
-          borderRadius: "50%",
-          backgroundColor: "#0099FF",
-          opacity: 0.1,
-          bottom: "80px",
-          right: "40px",
-          animation: "float2 6s ease-in-out infinite",
-        }}
-      />
-
       {/* Main Content */}
       <div
         style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "space-between",
-          height: "100%",
-          padding: "50px 20px",
+          maxWidth: "800px",
+          width: "100%",
           textAlign: "center",
+          position: "relative",
         }}
       >
-        <div />
-        <div
+        <h1
           style={{
-            opacity: isAnimating ? 1 : 0,
-            transform: `scale(${logoScale}) translateY(${isAnimating ? 0 : 40}px)`,
-            transition: "all 0.7s ease",
+            fontSize: "48px",
+            fontWeight: "700",
+            margin: "0 0 40px 0",
+            lineHeight: "1.2",
           }}
         >
+          CoLink brings the team together, wherever you are
+        </h1>
+
+        {/* Illustration Container */}
+        <div
+          style={{
+            position: "relative",
+            width: "100%",
+            height: "400px",
+            marginBottom: "40px",
+          }}
+        >
+          {/* Team Member 1 - Top Left */}
           <div
             style={{
-              fontSize: "60px",
-              color: "#0066CC",
-              marginBottom: "10px",
+              position: "absolute",
+              top: "50px",
+              left: "100px",
+              backgroundColor: "#FFF1E9",
+              borderRadius: "20px",
+              padding: "20px",
+              width: "220px",
+              height: "160px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transform: "rotate(-5deg)",
+              transition: "transform 0.3s ease",
+              cursor: "pointer",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "rotate(-5deg) scale(1.05)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "rotate(-5deg)";
             }}
           >
-            💬
+            <PersonIllustration1 />
+            <div
+              style={{
+                position: "absolute",
+                top: "-10px",
+                right: "-10px",
+                backgroundColor: "white",
+                borderRadius: "12px",
+                padding: "8px 16px",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              }}
+            >
+              <span style={{ color: "#E01E5A" }}>📄</span>
+              <span style={{ color: "#333", fontSize: "14px" }}>Document.pdf</span>
+            </div>
           </div>
-          <h1 style={{ fontSize: "36px", fontWeight: "bold", margin: 0 }}>
-            Welcome to CoLink
-          </h1>
-          <p
+
+          {/* Team Member 2 - Top Right */}
+          <div
             style={{
-              color: "#aaa",
-              fontSize: "16px",
-              marginTop: "8px",
-              maxWidth: "400px",
-              marginInline: "auto",
+              position: "absolute",
+              top: "20px",
+              right: "120px",
+              backgroundColor: "#FFB900",
+              borderRadius: "20px",
+              padding: "20px",
+              width: "180px",
+              height: "140px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transform: "rotate(5deg)",
+              transition: "transform 0.3s ease",
+              cursor: "pointer",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "rotate(5deg) scale(1.05)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "rotate(5deg)";
             }}
           >
-            A modern chat app for seamless communication.
-          </p>
+            <PersonIllustration2 />
+          </div>
+
+          {/* Team Member 3 - Bottom */}
+          <div
+            style={{
+              position: "absolute",
+              bottom: "40px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              backgroundColor: "#FF9B8E",
+              borderRadius: "20px",
+              padding: "20px",
+              width: "200px",
+              height: "150px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "transform 0.3s ease",
+              cursor: "pointer",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateX(-50%) scale(1.05)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateX(-50%)";
+            }}
+          >
+            <PersonIllustration3 />
+            <div
+              style={{
+                position: "absolute",
+                bottom: "-15px",
+                right: "-15px",
+                backgroundColor: "white",
+                borderRadius: "12px",
+                padding: "6px 12px",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              }}
+            >
+              <span style={{ color: "#007A5A" }}>✓</span>
+              <span style={{ color: "#333", fontSize: "14px" }}>3</span>
+            </div>
+          </div>
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(2, 1fr)",
-            gap: "20px",
-            marginTop: "40px",
-            maxWidth: "600px",
-            width: "100%",
-            opacity: isAnimating ? 1 : 0,
-            transform: `translateY(${isAnimating ? 0 : 40}px)`,
-            transition: "all 0.7s ease",
-          }}
-        >
-          <FeatureCard icon="comment-dots" title="Real-time Chat" color="#0066CC" />
-          <FeatureCard icon="users" title="Team Collaboration" color="#0099FF" />
-          <FeatureCard icon="lock" title="Secure" color="#0066CC" />
-          <FeatureCard icon="bell" title="Notifications" color="#0099FF" />
-        </div>
-
+        {/* Get Started Button */}
         <button
-          style={{
-            backgroundColor: "#0066CC",
-            color: "white",
-            border: "none",
-            padding: "14px 30px",
-            borderRadius: "30px",
-            fontSize: "16px",
-            fontWeight: "bold",
-            marginTop: "40px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-            cursor: "pointer",
-            transition: "box-shadow 0.3s ease",
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            opacity: isAnimating ? 1 : 0,
-            transform: `translateY(${isAnimating ? 0 : 20}px)`,
-          }}
           onClick={() => navigate("/login")}
-
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.boxShadow = "0 6px 16px rgba(0,0,0,0.4)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.2)")
-          }
+          style={{
+            backgroundColor: "white",
+            color: "#4A154B",
+            border: "none",
+            borderRadius: "28px",
+            padding: "19px 40px 20px",
+            fontSize: "18px",
+            fontWeight: "700",
+            cursor: "pointer",
+            transition: "all 0.2s ease",
+            width: "300px",
+            textAlign: "center",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = "#F8F8F8";
+            e.currentTarget.style.transform = "scale(1.02)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "white";
+            e.currentTarget.style.transform = "scale(1)";
+          }}
         >
-          Get Started <span style={{ fontSize: "20px" }}>→</span>
+          Get started
         </button>
       </div>
-
-      {/* Keyframes injected via style tag */}
-      <style>{`
-        @keyframes float1 {
-          0%, 100% { transform: translateY(30px); }
-          50% { transform: translateY(-30px); }
-        }
-        @keyframes float2 {
-          0%, 100% { transform: translateY(-30px); }
-          50% { transform: translateY(30px); }
-        }
-      `}</style>
     </div>
   );
 }

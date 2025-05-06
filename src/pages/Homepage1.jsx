@@ -8,11 +8,11 @@ import {
 
 export default function Homepage1() {
   const [companyName, setCompanyName] = useState("Loading...");
+  const [projectName, setProjectName] = useState("Loading...");
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
-  const [username, setUsername] = useState("User");
+  const [user, setUser] = useState({ name: "User", email: "" });
 
-  const email = "user@example.com";
   const navigate = useNavigate();
   const formattedDate = new Date().toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long" });
 
@@ -24,41 +24,42 @@ export default function Homepage1() {
 
   useEffect(() => {
     fetchInitialData();
-    const interval = setInterval(fetchMessages, 3000); // Poll every 3s
+    const interval = setInterval(fetchMessages, 3000);
     return () => clearInterval(interval);
   }, []);
 
   const fetchInitialData = async () => {
     try {
-      const [detailsRes, usernameRes] = await Promise.all([
-        fetch("http://127.0.0.1:5000/get-details"),
-        fetch(`http://127.0.0.1:5000/get-username/${email}`)
+      const [userRes, messagesRes] = await Promise.all([
+        fetch("http://127.0.0.1:5000/get-current-user", { credentials: "include" }),
+        fetch("http://127.0.0.1:5000/get-messages")
       ]);
 
-      const details = await detailsRes.json();
-      setCompanyName(details.company_name || "Unknown");
-
-      const user = await usernameRes.json();
-      setUsername(user.name || "User");
-
-      const stored = localStorage.getItem("messages");
-      if (stored) {
-        setMessages(JSON.parse(stored));
-      } else {
-        fetchMessages();
+      if (userRes.status === 200) {
+        const userData = await userRes.json();
+        setUser({ name: userData.name, email: userData.email });
+        setCompanyName(userData.company_name || "Unknown");
+        setProjectName(userData.project_type || "Unknown");
       }
-    } catch (err) {
-      console.error(err);
+
+      if (messagesRes.status === 200) {
+        const msgData = await messagesRes.json();
+        const parsed = msgData.reverse();
+        setMessages(parsed);
+      }
+    } catch (error) {
+      console.error("Error fetching initial data", error);
     }
   };
 
   const fetchMessages = async () => {
     try {
       const res = await fetch("http://127.0.0.1:5000/get-messages");
-      const data = await res.json();
-      const parsed = data.reverse();
-      setMessages(parsed);
-      localStorage.setItem("messages", JSON.stringify(parsed)); // Save in storage
+      if (res.status === 200) {
+        const data = await res.json();
+        const parsed = data.reverse();
+        setMessages(parsed);
+      }
     } catch (err) {
       console.error("Error fetching messages", err);
     }
@@ -66,31 +67,27 @@ export default function Homepage1() {
 
   const handleSend = async () => {
     if (message.trim() === "") return;
-  
+
     const newMessage = {
-      name: username,
+      name: user.name,
       message: message,
       timestamp: new Date().toLocaleString(),
     };
-  
+
     try {
       await fetch("http://127.0.0.1:5000/send-message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, message }),
+        body: JSON.stringify({ email: user.email, message }),
       });
-  
-      setMessages((prev) => [newMessage, ...prev]);  // add immediately to UI
-  
-      setTimeout(fetchMessages, 1000); // after 1 sec, fetch from server softly
-      setMessage(""); // clear input but DON'T touch focus
-  
+
+      setMessages((prev) => [newMessage, ...prev]);
+      setTimeout(fetchMessages, 1000);
+      setMessage("");
     } catch (err) {
-      console.error("Failed to send", err);
+      console.error("Failed to send message", err);
     }
   };
-  
-  
 
   const handleDelete = async (timestamp) => {
     try {
@@ -104,68 +101,6 @@ export default function Homepage1() {
       console.error("Failed to delete", err);
     }
   };
-
-  const MessageInput = React.memo(() => (
-    <div style={{ backgroundColor: "transparent", padding: "0 16px 16px 16px", marginTop: "auto" }}>
-      <div style={{
-        border: "1px solid #424242",
-        borderRadius: "4px",
-        backgroundColor: "#222529",
-        padding: "12px"
-      }}>
-        <div style={{ display: "flex", gap: "12px", marginBottom: "12px" }}>
-          {[FaBold, FaItalic, FaStrikethrough, FaLink, FaListUl, FaCode, FaExternalLinkAlt].map((Icon, i) => (
-            <button key={i} style={{ background: "transparent", border: "none", color: "#9ea3a8", fontSize: "15px" }}>
-              <Icon />
-            </button>
-          ))}
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <div style={{ display: "flex", gap: "8px" }}>
-            {[FaPlus, FaFont, FaSmile, FaAt].map((Icon, i) => (
-              <button key={i} style={{ background: "transparent", border: "none", color: "#9ea3a8", fontSize: "16px" }}>
-                <Icon />
-              </button>
-            ))}
-          </div>
-
-          <input
-            type="text"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder={`Message #all-${companyName}`}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                handleSend();
-              }
-            }}
-            style={{
-              flexGrow: 1,
-              backgroundColor: "transparent",
-              border: "none",
-              color: "white",
-              fontSize: "15px",
-              outline: "none",
-              padding: "8px 12px",
-            }}
-          />
-
-          <div style={{ display: "flex", gap: "8px" }}>
-            {[FaCamera, FaMicrophone, FaPencilAlt].map((Icon, i) => (
-              <button key={i} style={{ background: "transparent", border: "none", color: "#9ea3a8", fontSize: "16px" }}>
-                <Icon />
-              </button>
-            ))}
-            <button onClick={handleSend} style={{ background: "transparent", border: "none", color: "#4FC3F7", fontSize: "16px" }}>
-              <FaPaperPlane />
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  ));
 
   return (
     <MainLayout>
@@ -241,9 +176,69 @@ export default function Homepage1() {
           ))}
         </div>
 
-        <MessageInput />
+        <div style={{ backgroundColor: "transparent", padding: "0 16px 16px 16px", marginTop: "auto" }}>
+          <div style={{
+            border: "1px solid #424242",
+            borderRadius: "4px",
+            backgroundColor: "#222529",
+            padding: "12px"
+          }}>
+            <div style={{ display: "flex", gap: "12px", marginBottom: "12px" }}>
+              {[FaBold, FaItalic, FaStrikethrough, FaLink, FaListUl, FaCode, FaExternalLinkAlt].map((Icon, i) => (
+                <button key={i} style={{ background: "transparent", border: "none", color: "#9ea3a8", fontSize: "15px" }}>
+                  <Icon />
+                </button>
+              ))}
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <div style={{ display: "flex", gap: "8px" }}>
+                {[FaPlus, FaFont, FaSmile, FaAt].map((Icon, i) => (
+                  <button key={i} style={{ background: "transparent", border: "none", color: "#9ea3a8", fontSize: "16px" }}>
+                    <Icon />
+                  </button>
+                ))}
+              </div>
+
+              <input
+                type="text"
+                value={message}
+                onChange={(e) => {
+                  setMessage(e.target.value)
+                }}
+                placeholder={`Message #all-${companyName}`}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+                style={{
+                  flexGrow: 1,
+                  backgroundColor: "transparent",
+                  border: "none",
+                  color: "white",
+                  fontSize: "15px",
+                  outline: "none",
+                  padding: "8px 12px",
+                }}
+              />
+
+              <div style={{ display: "flex", gap: "8px" }}>
+                {[FaCamera, FaMicrophone, FaPencilAlt].map((Icon, i) => (
+                  <button key={i} style={{ background: "transparent", border: "none", color: "#9ea3a8", fontSize: "16px" }}>
+                    <Icon />
+                  </button>
+                ))}
+                <button onClick={handleSend} style={{ background: "transparent", border: "none", color: "#4FC3F7", fontSize: "16px" }}>
+                  <FaPaperPlane />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </MainLayout>
   );
 }
-

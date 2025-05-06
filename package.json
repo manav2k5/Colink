@@ -13,6 +13,7 @@
     "react-icons": "^5.5.0",
     "react-router-dom": "^6.22.3",
     "react-scripts": "5.0.1",
+    "socket.io-client": "^4.8.1",
     "web-vitals": "^2.1.4"
   },
   "devDependencies": {
@@ -27,7 +28,6 @@
     "eject": "react-scripts eject",
     "electron": "electron .",
     "dev": "concurrently \"npm start\" \"wait-on http://localhost:3000 && npm run electron\""
-    
   },
   "eslintConfig": {
     "extends": [

@@ -1,35 +1,44 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export default function CompanyName() {
   const [workspaceName, setWorkspaceName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [userEmail, setUserEmail] = useState("");
   const navigate = useNavigate();
 
+  useEffect(() => {
+    // Fetch the logged-in user email first
+    axios.get('http://127.0.0.1:5000/get-current-user', { withCredentials: true })
+      .then((res) => {
+        setUserEmail(res.data.email);
+      })
+      .catch((error) => {
+        console.error("Error fetching user:", error);
+      });
+  }, []);
+
   const storeCompanyName = async () => {
+    if (!workspaceName.trim()) return;
+
     setIsLoading(true);
     setErrorMessage("");
 
     try {
-      const response = await fetch("http://127.0.0.1:5000/update-details", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          company_name: workspaceName,
-          project_type: "default_project", 
-        }),
-      });
+      const response = await axios.post("http://127.0.0.1:5000/save-user-details", {
+        email: userEmail,
+        company_name: workspaceName
+      }, { withCredentials: true });
 
-      if (response.status === 201) {
-        navigate("/profile");
+      if (response.status === 200) {
+        navigate("/profile");  // ✅ Correct next page
       } else {
         setErrorMessage(`Failed with status ${response.status}`);
       }
     } catch (error) {
-      setErrorMessage("Network error: " + error.message);
+      setErrorMessage("Network error: " + (error.response?.data?.error || error.message));
     } finally {
       setIsLoading(false);
     }

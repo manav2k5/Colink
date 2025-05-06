@@ -1,84 +1,76 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export default function UserProfile() {
   const [workspaceName, setWorkspaceName] = useState("");
   const [workspaceLogo, setWorkspaceLogo] = useState("");
   const [userName, setUserName] = useState("");
   const [profilePhoto, setProfilePhoto] = useState("");
-  const [email] = useState("user@example.com");  // Replace later
+  const [userEmail, setUserEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchCompanyDetails = async () => {
-      try {
-        const response = await fetch("http://127.0.0.1:5000/get-company");
-        const company = await response.json();
-        setWorkspaceName(company.name || "");
-        setWorkspaceLogo(company.logo || "");
-      } catch (err) {
-        console.error("Failed to fetch company details", err);
-      }
-    };
+    fetchUserDetails();
+  }, []);
 
-    const fetchUserName = async () => {
-      try {
-        const response = await fetch(`http://127.0.0.1:5000/get-username/${email}`);
-        const user = await response.json();
-        setUserName(user.name || "");
-      } catch (err) {
-        console.error("Failed to fetch user name", err);
-      }
-    };
-
-    fetchCompanyDetails();
-    fetchUserName();
-  }, [email]);
-
-  const updateUserName = async () => {
+  const fetchUserDetails = async () => {
     try {
-      await fetch("http://127.0.0.1:5000/save-username", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, username: userName }),
-      });
+      const res = await axios.get("http://127.0.0.1:5000/get-current-user", { withCredentials: true });
+      const data = res.data;
+      setWorkspaceName(data.company_name || "");
+      setUserName(data.name || "");
+      setUserEmail(data.email || "");
+      setProfilePhoto(data.profile_photo || ""); // Optional if you store photo URL later
     } catch (err) {
-      console.error("Failed to save username", err);
+      console.error("Failed to fetch user details", err);
     }
   };
-  
+
+  const updateUserName = async () => {
+    if (!userName.trim()) return;
+    try {
+      await axios.post("http://127.0.0.1:5000/save-user-details", {
+        email: userEmail,
+        profile: userName,
+      }, { withCredentials: true });
+    } catch (err) {
+      console.error("Failed to save user name", err);
+    }
+  };
+
+  // For now, we won't handle real image upload (just basic profile photo management)
+  const handleNext = async () => {
+    await updateUserName(); // Make sure name is saved before moving forward
+    navigate("/project");
+  };
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "black", color: "white" }}>
+    <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "black", color: "white", fontFamily: "'Segoe UI', sans-serif" }}>
       {/* Sidebar */}
       <div style={{ width: "200px", backgroundColor: "#000", padding: "20px" }}>
         {workspaceName && (
           <>
-            {workspaceLogo ? (
-              <img
-                src={workspaceLogo}
-                alt="Workspace Logo"
-                style={{ width: "40px", height: "40px", borderRadius: "50%" }}
-              />
-            ) : (
-              <div
-                style={{
-                  width: "40px",
-                  height: "40px",
-                  backgroundColor: "purple",
-                  color: "white",
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontWeight: "bold",
-                  fontSize: "20px",
-                }}
-              >
-                {workspaceName.charAt(0).toUpperCase()}
-              </div>
-            )}
-            <div style={{ marginTop: "10px", fontWeight: "bold" }}>{workspaceName}</div>
+            <div
+              style={{
+                width: "40px",
+                height: "40px",
+                borderRadius: "50%",
+                backgroundColor: "purple",
+                color: "white",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontWeight: "bold",
+                fontSize: "20px",
+              }}
+            >
+              {workspaceName.charAt(0).toUpperCase()}
+            </div>
+            <div style={{ marginTop: "10px", fontWeight: "bold" }}>
+              {workspaceName}
+            </div>
           </>
         )}
       </div>
@@ -87,8 +79,8 @@ export default function UserProfile() {
       <div style={{ flex: 1, padding: "40px" }}>
         <div style={{ color: "gray", fontSize: "12px" }}>Step 2 of 5</div>
         <h2 style={{ fontSize: "28px", fontWeight: "bold" }}>What’s your name?</h2>
-        <p style={{ color: "gray", marginBottom: "10px" }}>
-          Adding your name and profile photo helps your teammates recognize and connect with you more easily.
+        <p style={{ color: "gray", marginBottom: "20px" }}>
+          Adding your name and profile photo helps your teammates recognize you better.
         </p>
 
         <input
@@ -104,19 +96,19 @@ export default function UserProfile() {
             border: "none",
             borderRadius: "5px",
             color: "white",
-            marginBottom: "10px",
+            marginBottom: "20px",
           }}
         />
 
         <div style={{ color: "gray", fontSize: "14px", marginBottom: "8px" }}>
-          Your profile photo (optional)
+          Your profile photo (auto-fetched from Google)
         </div>
 
         {profilePhoto ? (
           <img
             src={profilePhoto}
             alt="Profile"
-            style={{ width: "80px", height: "80px", borderRadius: "50%" }}
+            style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover" }}
           />
         ) : (
           <div
@@ -131,35 +123,21 @@ export default function UserProfile() {
         )}
 
         <button
+          onClick={handleNext}
+          disabled={!userName || isLoading}
           style={{
-            marginTop: "10px",
-            width: "150px",
-            padding: "10px",
-            backgroundColor: "#444",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-          }}
-        >
-          Edit photo
-        </button>
-
-        <button
-          onClick={() => navigate("/project")}
-          style={{
-            marginTop: "20px",
-            width: "150px",
-            padding: "12px",
+            marginTop: "30px",
+            width: "200px",
+            padding: "14px",
             backgroundColor: "purple",
             color: "white",
             border: "none",
             borderRadius: "5px",
-            cursor: "pointer",
             fontWeight: "bold",
+            cursor: userName ? "pointer" : "not-allowed",
           }}
         >
-          Next
+          Next →
         </button>
       </div>
     </div>

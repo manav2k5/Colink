@@ -1,22 +1,26 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export default function Start() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(null);
-  const [userEmail, setUserEmail] = useState("Loading...");
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     setTimeout(() => setIsAnimating(true), 100);
 
-    // fetch logged-in user's email
-    fetch("http://127.0.0.1:5000/get-current-user", { credentials: "include" })
-      .then((res) => res.json())
-      .then((data) => setUserEmail(data.email || "Unknown"))
-      .catch(() => setUserEmail("Unknown"));
+    // Fetch logged-in user's full data (email, name)
+    axios.get('http://127.0.0.1:5000/get-current-user', { withCredentials: true })
+      .then((res) => {
+        console.log(res.data);  // For checking what is coming from backend
+        setUser(res.data);       // Save whole user object
+      })
+      .catch(() => {
+        setUser(null);
+      });
   }, []);
-
 
   const ImageUploadCard = ({ index }) => {
     const [hovered, setHovered] = useState(false);
@@ -32,18 +36,14 @@ export default function Start() {
           height: "120px",
           borderRadius: "20px",
           background: "rgba(255,255,255,0.05)",
-          border: `1px solid ${
-            isSelected || hovered ? "rgba(0,153,255,0.8)" : "rgba(0,153,255,0.3)"
-          }`,
+          border: `1px solid ${isSelected || hovered ? "rgba(0,153,255,0.8)" : "rgba(0,153,255,0.3)"}`,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
           transition: "all 0.3s ease",
           transform: hovered ? "scale(1.05)" : "scale(1)",
-          boxShadow: hovered
-            ? "0 5px 10px rgba(0,102,204,0.3)"
-            : "0 0 0 rgba(0,0,0,0)",
+          boxShadow: hovered ? "0 5px 10px rgba(0,102,204,0.3)" : "none",
           cursor: "pointer",
           color: "#ccc",
         }}
@@ -53,6 +53,24 @@ export default function Start() {
       </button>
     );
   };
+
+  if (!user) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "black",
+          color: "white",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontFamily: "'Segoe UI', sans-serif",
+        }}
+      >
+        Loading user data...
+      </div>
+    );
+  }
 
   return (
     <div
@@ -65,7 +83,7 @@ export default function Start() {
         overflow: "hidden",
       }}
     >
-      {/* Animated Circles */}
+      {/* Floating Circles */}
       <div
         style={{
           position: "absolute",
@@ -121,7 +139,7 @@ export default function Start() {
           CoLink
         </h1>
 
-        {/* Confirmed Email */}
+        {/* Confirmed User Info */}
         <div
           style={{
             width: "100%",
@@ -148,7 +166,7 @@ export default function Start() {
                 WebkitTextFillColor: "transparent",
               }}
             >
-              {userEmail}
+              {user.email}
             </strong>
           </span>
           <button
@@ -164,7 +182,7 @@ export default function Start() {
           </button>
         </div>
 
-        {/* Info */}
+        {/* Info Section */}
         <div style={{ textAlign: "center", maxWidth: "700px" }}>
           <h2 style={{ fontSize: "32px", fontWeight: "bold" }}>
             Create a new <br /> CoLink workspace
@@ -175,7 +193,7 @@ export default function Start() {
           </p>
         </div>
 
-        {/* Image Grid */}
+        {/* Image Upload Cards */}
         <div
           style={{
             display: "flex",
@@ -188,7 +206,7 @@ export default function Start() {
           ))}
         </div>
 
-        {/* Button */}
+        {/* Create Workspace Button */}
         <button
           onClick={() => navigate("/company")}
           style={{
@@ -225,7 +243,7 @@ export default function Start() {
         </p>
       </div>
 
-      {/* Animation Keyframes */}
+      {/* Floating Animations */}
       <style>{`
         @keyframes float1 {
           0%, 100% { transform: translateY(30px); }

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import MainLayout from "../components/MainLayout";
 import { 
-  FaUsers, FaFileAlt, FaHandshake, FaClipboardList, 
-  FaBold, FaItalic, FaStrikethrough, FaLink, FaListUl, 
-  FaCode, FaExternalLinkAlt, FaPlus, FaFont, FaSmile, 
+  FaUsers, FaFileAlt, FaHandshake, FaClipboardList,
+  FaBold, FaItalic, FaStrikethrough, FaLink, FaListUl,
+  FaCode, FaExternalLinkAlt, FaPlus, FaFont, FaSmile,
   FaAt, FaCamera, FaMicrophone, FaPencilAlt, FaPaperPlane, FaTrash
 } from "react-icons/fa";
 
@@ -11,56 +12,101 @@ export default function Homepage2() {
   const [projectName, setProjectName] = useState("Loading...");
   const [projectMessages, setProjectMessages] = useState([]);
   const [message, setMessage] = useState("");
-  const email = "user@example.com"; // static for now
-  const [username, setUsername] = useState("User");
+  const [user, setUser] = useState({ name: "User", email: "" });
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchProjectName();
-    fetchUsername();
-    fetchProjectMessages();
+    fetchInitialData();
+    const interval = setInterval(fetchProjectMessages, 1500);
+    return () => clearInterval(interval);
   }, []);
 
-  const fetchProjectName = async () => {
-    const res = await fetch("http://127.0.0.1:5000/get-details");
-    const data = await res.json();
-    setProjectName(data.project_type || "Unknown");
-  };
+  const fetchInitialData = async () => {
+    try {
+      const userRes = await fetch("http://127.0.0.1:5000/get-current-user", { credentials: "include" });
+      const messagesRes = await fetch("http://127.0.0.1:5000/get-project-messages");
 
-  const fetchUsername = async () => {
-    const res = await fetch(`http://127.0.0.1:5000/get-username/${email}`);
-    const data = await res.json();
-    setUsername(data.name || "User");
+      if (userRes.status === 200) {
+        const userData = await userRes.json();
+        setUser({ name: userData.name, email: userData.email });
+        setProjectName(userData.project_type || "Unknown");
+      }
+
+      if (messagesRes.status === 200) {
+        const msgData = await messagesRes.json();
+        const parsed = msgData.reverse();
+        setProjectMessages(parsed)
+        
+      }
+    } catch (error) {
+      console.error("Error fetching initial data", error);
+    }
   };
 
   const fetchProjectMessages = async () => {
-    const res = await fetch("http://127.0.0.1:5000/get-project-messages");
-    const data = await res.json();
-    setProjectMessages(data.reverse()); // latest at bottom
+    const controller = new AbortController();
+    try {
+      const res = await fetch("http://127.0.0.1:5000/get-project-messages", {
+        signal: controller.signal,
+      });
+
+      if (res.status === 200) {
+        const data = await res.json();
+        setProjectMessages(data.reverse());
+      }
+    } catch (error) {
+      if (error.name !== "AbortError") {
+        console.error("Error fetching project messages", error);
+      }
+    }
+    return () => controller.abort();
   };
 
   const handleSend = async () => {
     if (message.trim() === "") return;
 
-    await fetch("http://127.0.0.1:5000/send-project-message", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, message }),
-    });
+    const tempMessage = {
+      name: user.name,
+      
+      message: message,
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    };
 
+    setProjectMessages((prev) => [tempMessage, ...prev]);
     setMessage("");
-    fetchProjectMessages();
+
+    try {
+      await fetch("http://127.0.0.1:5000/send-project-message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: user.email, message }),
+      });
+
+      fetchProjectMessages(); // Sync with latest messages
+    } catch (error) {
+      console.error("Error sending project message", error);
+    }
   };
 
-  const handleDelete = async (payload) => {
-    await fetch("http://127.0.0.1:5000/delete-project-message", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ payload }),
-    });
-
-    fetchProjectMessages();
+  const handleDelete = async (msg) => {
+    try {
+      const res = await fetch("http://127.0.0.1:5000/delete-project-message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message_id: msg.timestamp }),
+      });
+  
+      if (res.ok) {
+        await fetchProjectMessages(); // re-sync state from Redis
+      } else {
+        console.error("Failed to delete message");
+      }
+    } catch (error) {
+      console.error("Error deleting project message", error);
+    }
   };
-
+  
+  
   const WelcomeCard = ({ title, subtitle, icon, color }) => (
     <div style={{
       width: "260px",
@@ -89,7 +135,6 @@ export default function Homepage2() {
         backgroundColor: "#222529",
         padding: "12px"
       }}>
-        {/* Toolbar */}
         <div style={{ display: "flex", gap: "12px", marginBottom: "12px" }}>
           {[FaBold, FaItalic, FaStrikethrough, FaLink, FaListUl, FaCode, FaExternalLinkAlt].map((Icon, i) => (
             <button key={i} style={{ background: "transparent", border: "none", color: "#9ea3a8", fontSize: "15px" }}>
@@ -98,7 +143,6 @@ export default function Homepage2() {
           ))}
         </div>
 
-        {/* Input */}
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <div style={{ display: "flex", gap: "8px" }}>
             {[FaPlus, FaFont, FaSmile, FaAt].map((Icon, i) => (
@@ -110,13 +154,13 @@ export default function Homepage2() {
 
           <input
             type="text"
-            placeholder={`Message #all-${projectName}`}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
+            placeholder={`Message #all-${projectName}`}
             style={{
-              flex: 1,
-              background: "transparent",
+              flexGrow: 1,
+              backgroundColor: "transparent",
               border: "none",
               color: "white",
               fontSize: "15px",
@@ -141,10 +185,10 @@ export default function Homepage2() {
 
   return (
     <MainLayout>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", backgroundColor: "#1a1d21", minWidth: 0, height: "100%" }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", backgroundColor: "#1a1d21", height: "100%" }}>
         
         {/* Header */}
-        <div style={{ padding: "20px", borderBottom: "1px solid rgba(255, 255, 255, 0.1)", backgroundColor: "#1a1d21" }}>
+        <div style={{ padding: "20px", borderBottom: "1px solid rgba(255,255,255,0.1)", backgroundColor: "#1a1d21" }}>
           <div style={{ fontSize: "18px", fontWeight: "600", color: "#e6e6e6", marginBottom: "12px" }}>
             # all-{projectName}
           </div>
@@ -156,7 +200,7 @@ export default function Homepage2() {
           <p style={{ fontSize: "15px", color: "#9ea3a8", marginBottom: "24px" }}>
             This channel is for everything #{projectName}. Get started by setting up the channel for your team:
           </p>
-          <div style={{ display: "flex", gap: "16px", flexWrap: "nowrap", overflowX: "auto" }}>
+          <div style={{ display: "flex", gap: "16px", overflowX: "auto" }}>
             <WelcomeCard title="Invite teammates" subtitle="Add your whole team" color="#4A154B" icon={<FaUsers />} />
             <WelcomeCard title="Add project brief" subtitle="Canvas template" color="#1C4B57" icon={<FaFileAlt />} />
             <WelcomeCard title="Host weekly syncs" subtitle="Huddle in Slack" color="#1E4620" icon={<FaHandshake />} />
@@ -167,7 +211,7 @@ export default function Homepage2() {
         {/* Project Messages */}
         <div style={{ flex: 1, overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column" }}>
           {projectMessages.map((msg, i) => (
-            <div key={i} style={{ display: "flex", gap: "12px", marginBottom: "16px", alignItems: "flex-start" }}>
+            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "12px", marginBottom: "16px" }}>
               <div style={{
                 width: "36px",
                 height: "36px",
@@ -179,7 +223,7 @@ export default function Homepage2() {
                 color: "white",
                 fontWeight: "500"
               }}>
-                {msg.name?.charAt(0).toUpperCase() || "U"}
+                {msg.name?.charAt(0)?.toUpperCase() || "U"}
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ display: "flex", gap: "8px", alignItems: "baseline" }}>
@@ -188,7 +232,7 @@ export default function Homepage2() {
                 </div>
                 <div style={{ color: "#d0d0d0", fontSize: "14px", marginTop: "2px" }}>{msg.message}</div>
               </div>
-              <button onClick={() => handleDelete(JSON.stringify(msg))} style={{
+              <button onClick={() => handleDelete(msg)} style={{
                 background: "transparent",
                 border: "none",
                 color: "#ff4d4d",
