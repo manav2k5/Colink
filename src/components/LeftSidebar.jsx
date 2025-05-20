@@ -41,7 +41,7 @@ export default function LeftSidebar() {
 
   const fetchCompanyName = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:5000/get-details");
+      const response = await fetch("http://127.0.0.1:5000/get-current-user");
       const data = await response.json();
       setCompanyName(data.company_name || "");
     } catch (error) {
@@ -94,10 +94,10 @@ export default function LeftSidebar() {
   };
 
   return (
-    <div style={{ 
-      display: "flex", 
-      height: "100vh", 
-      fontFamily: "'Segoe UI', sans-serif", 
+    <div style={{
+      display: "flex",
+      height: "100vh",
+      fontFamily: "'Segoe UI', sans-serif",
       position: "relative",
       background: "#2a1a2a",
     }}>
@@ -114,7 +114,6 @@ export default function LeftSidebar() {
           borderRight: "1px solid rgba(255,255,255,0.05)",
         }}
       >
-        {/* Company Initial */}
         <div style={{
           width: "44px",
           height: "44px",
@@ -129,8 +128,9 @@ export default function LeftSidebar() {
           fontSize: "18px",
           boxShadow: "0 2px 8px rgba(74, 42, 74, 0.3)",
         }}>
-          {companyName[0]?.toUpperCase()}
+          {(companyName?.charAt(0) || "C").toUpperCase()}
         </div>
+
 
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
           <SidebarButton icon={MdDashboard} filledIcon={MdDashboard} label="Home" name="Home" to="/homepage1" />
@@ -261,8 +261,8 @@ export default function LeftSidebar() {
             color: "white",
           }}
         >
-          <div style={{ 
-            padding: "8px 0", 
+          <div style={{
+            padding: "8px 0",
             borderBottom: "1px solid rgba(255,255,255,0.1)",
             marginBottom: "12px",
             color: "#b388ff",

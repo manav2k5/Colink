@@ -236,7 +236,10 @@ const KanbanBoard = () => {
                   onClick={() => {
                     if (item.id === 'roadmap') {
                       navigate('/roadmap');
+                    } else if (item.id === 'reports') {
+                      navigate('/reports');
                     }
+                    
                   }}
                   style={{
                     padding: '8px 20px',

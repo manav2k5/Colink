@@ -14,6 +14,8 @@ import ActivityPage from "./pages/ActivityPage";
 import CompanyHandbook from "./pages/CompanyHandbook.jsx"
 import KanbanBoard from "./pages/kanbanboard.jsx";
 import Roadmap  from "./pages/roadmap.jsx"
+import Reports from "./pages/Reports.jsx";
+
 
 function App() {
   return (
@@ -32,6 +34,8 @@ function App() {
       <Route path="/companyhandbook" element={<CompanyHandbook />} /> 
       <Route path="/kanbanboard" element={<KanbanBoard />} />
       <Route path="/roadmap" element={<Roadmap />} />
+      <Route path="/reports" element={< Reports />} />
+      
 
     </Routes>
   );

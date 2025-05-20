@@ -159,8 +159,7 @@ def save_user_details():
     if "project_type" in data:
         update_data["project_type"] = data["project_type"]
     if "profile_photo" in data:
-        update_data["profile_photo"] = data["profile_photo"]  # Optional if you upload photo later
-
+        update_data["profile_photo"] = data["profile_photo"]  
     if not update_data:
         return jsonify({"error": "No fields to update"}), 400
 
@@ -256,7 +255,7 @@ def delete_message():
     if not message_id:
         return jsonify({"error": "message_id is required"}), 400
 
-    # Assuming you're storing messages in Redis
+    #  storing messages in Redis
     all_messages = redis_client.lrange("messages", 0, -1)
     for msg in all_messages:
         if json.loads(msg).get("timestamp") == message_id:
@@ -439,10 +438,10 @@ def send_invite():
         return jsonify({"message": "Email sent successfully"}), 200
 
     except smtplib.SMTPAuthenticationError as e:
-        print("❌ Authentication error:", e)
+        print("Authentication error:", e)
         return jsonify({"error": "Authentication failed"}), 401
     except Exception as e:
-        print("❌ Error:", e)
+        print(" Error:", e)
         return jsonify({"error": "Failed to send email"}), 500
 
 #    -----------DmsPage---------------------------
@@ -468,9 +467,7 @@ def save_note():
     })
 
     return jsonify({"message": "Note saved"}), 200
-
-
-
+ 
 
 @app.route("/get-notes/<email>", methods=["GET"])
 def get_notes(email):

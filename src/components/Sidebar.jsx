@@ -351,7 +351,7 @@ export default function MainSidebar() {
         <Section
           title="Direct messages"
           items={[
-            ["Manav  you", "/dm"],
+            ["Manav  (you)", "/dm"],
             ["+ Invite people", null, handleInviteClick],
           ]}
         />
